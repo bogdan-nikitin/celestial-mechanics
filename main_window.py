@@ -1,3 +1,4 @@
+from celestial_body_object import CelestialBodyObject, update_trajectories
 from simulation import CelestialBody, do_iteration
 
 
@@ -7,73 +8,35 @@ import pyqtgraph as pg
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow
 
-from dataclasses import dataclass
-
-from typing import List
 from main_window_ui import Ui_MainWindow
 
 
-@dataclass
-class CelestialBodyTrajectory:
-    x: List[float]
-    y: List[float]
+class PlotManager:
+    def __init__(self, plot, body_obj):
+        self._body_obj = body_obj
 
-
-@dataclass
-class CelestialBodyProperties:
-    name: str
-    color: (int, int, int)
-    size: int
-
-
-class CelestialBodyPlotItems:
-    def __init__(self, main_window, body, trajectory, properties):
-        self._body = body
-        self._trajectory = trajectory
-        self._properties = properties
-
-        pen = pg.mkPen(properties.color)
-        x, y = trajectory.x, trajectory.y
-        self._plot = main_window.graphicsView.plot(x, y, pen=pen)
-        self._marker = main_window.graphicsView.plot(
-            [body.pos[0]], [body.pos[1]],
+        pen = pg.mkPen(body_obj.color)
+        x, y = body_obj.trajectory.x, body_obj.trajectory.y
+        self._plot = plot.plot(x, y, pen=pen)
+        self._marker = plot.plot(
+            [body_obj.body.pos[0]], [body_obj.body.pos[1]],
             pen=pen,
             symbol='o',
-            symbolSize=properties.size * 25,
-            symbolBrush=properties.color,
+            symbolSize=body_obj.size,
+            symbolBrush=body_obj.color,
             pxMode=False
         )
 
     def plot(self):
-        self._marker.setData([self._body.pos[0]], [self._body.pos[1]])
-        self._plot.setData(self._trajectory.x, self._trajectory.y)
+        self._marker.setData([self._body_obj.body.pos[0]],
+                             [self._body_obj.body.pos[1]])
+        self._plot.setData(self._body_obj.trajectory.x,
+                           self._body_obj.trajectory.y)
 
 
-@dataclass
-class CelestialBodyObject:
-    def __init__(self, main_window, body, properties):
-        self.body = body
-        self.trajectory = CelestialBodyTrajectory([body.pos[0]], [body.pos[1]])
-        self.properties = properties
-        self.plot_items = CelestialBodyPlotItems(
-            main_window, body, self.trajectory, properties
-        )
-
-    body: CelestialBody
-    trajectory: CelestialBodyTrajectory
-    properties: CelestialBodyProperties
-    plot_items: CelestialBodyPlotItems
-
-
-def update_trajectories(bodies_and_trajectories):
-    for body, trajectory in bodies_and_trajectories:
-        trajectory.x += [body.pos[0]]
-        trajectory.y += [body.pos[1]]
-
-
-def update_plots(celestial_body_plot_items_list):
-    for celestial_body_plot_items in celestial_body_plot_items_list:
-        celestial_body_plot_items.plot()
+def update_plots(plot_managers):
+    for plot_manager in plot_managers:
+        plot_manager.plot()
 
 
 def magnitude(vec):
@@ -87,44 +50,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.graphicsView.setAspectLocked()
 
-        self.celestial_body_objects = []
+        self.plot_managers = []
+        self.body_objects = []
         body1 = CelestialBody(
             np.array([0, 0], dtype=float),
             np.array([0, 0], dtype=float),
             1.9891e30
         )
-        body1_prop = CelestialBodyProperties(
+        obj1 = CelestialBodyObject(
+            body1,
             'body1',
             (255, 0, 0),
             30000000
         )
-        obj1 = CelestialBodyObject(self, body1, body1_prop)
+        self.add_body_obj(obj1)
 
         body2 = CelestialBody(
             np.array([1.496e11, 0], dtype=float),
             np.array([0, 2.98e4], dtype=float),
             5.98e24
         )
-        body2_prop = CelestialBodyProperties(
+        obj2 = CelestialBodyObject(
+            body2,
             'body2',
             (0, 255, 0),
             15000000
         )
-        obj2 = CelestialBodyObject(self, body2, body2_prop)
+        self.add_body_obj(obj2)
 
         body3 = CelestialBody(
             np.array([1.4998e11, 0], dtype=float),
             np.array([0, 30820.0], dtype=float),
             7.35e22
         )
-        body3_prop = CelestialBodyProperties(
-            'body2',
+        obj3 = CelestialBodyObject(
+            body3,
+            'body3',
             (0, 0, 255),
             200000
         )
-        obj3 = CelestialBodyObject(self, body3, body3_prop)
-
-        self.celestial_body_objects += [obj1, obj2, obj3]
+        self.add_body_obj(obj3)
 
         # self.graphicsView.setBackground('w')
         # arrow = pg.ArrowItem(pos=[1000, 1000], angle=90, tailLen=100)
@@ -142,17 +107,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.elapsed = 0
         self.delta_time = 0
 
+    def add_body_obj(self, body_obj):
+        self.plot_managers += [PlotManager(self.graphicsView, body_obj)]
+        self.body_objects += [body_obj]
+
     def do_simulation_iteration(self):
-        bodies = [obj.body for obj in self.celestial_body_objects]
+        bodies = [obj.body for obj in self.body_objects]
         do_iteration(bodies, self.delta_time)
-        bodies_and_trajectories = [
-            (obj.body, obj.trajectory) for obj in self.celestial_body_objects
-        ]
-        update_trajectories(bodies_and_trajectories)
-        celestial_body_plot_items = [
-            obj.plot_items for obj in self.celestial_body_objects
-        ]
-        update_plots(celestial_body_plot_items)
+        update_trajectories(self.body_objects)
+        update_plots(self.plot_managers)
 
     def update_plot_data(self):
         elapsed = self.elapsed_timer.elapsed()
