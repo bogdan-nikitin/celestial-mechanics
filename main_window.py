@@ -1,14 +1,13 @@
-from celestial_body_object import CelestialBodyObject, update_trajectories
-from simulation import CelestialBody, do_iteration
-
-
 import numpy as np
 # import numpy.typing as npt
 import pyqtgraph as pg
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
 
+from celestial_body_object import CelestialBodyObject, update_trajectories
+from load_yaml import dump_objects, load_objects
 from main_window_ui import Ui_MainWindow
+from simulation import CelestialBody, do_iteration
 
 
 class PlotManager:
@@ -22,10 +21,14 @@ class PlotManager:
             [body_obj.body.pos[0]], [body_obj.body.pos[1]],
             pen=pen,
             symbol='o',
-            symbolSize=body_obj.size,
+            symbolSize=body_obj.size * 26,
             symbolBrush=body_obj.color,
             pxMode=False
         )
+
+    def clear(self):
+        self._marker.clear()
+        self._plot.clear()
 
     def plot(self):
         self._marker.setData([self._body_obj.body.pos[0]],
@@ -52,6 +55,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.plot_managers = []
         self.body_objects = []
+        self.current_file_name = None
+
+        self.openAction.triggered.connect(self.open_simulation)
+        self.saveAction.triggered.connect(self.save_simulation)
+        self.saveAsAction.triggered.connect(self.save_simulation_as)
         body1 = CelestialBody(
             np.array([0, 0], dtype=float),
             np.array([0, 0], dtype=float),
@@ -107,6 +115,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.elapsed = 0
         self.delta_time = 0
 
+    def open_simulation(self):
+        self.current_file_name, _ = QFileDialog.getOpenFileName(
+            self, 'Открытие', filter='*.yaml'
+        )
+        self.body_objects.clear()
+        for plot_manager in self.plot_managers:
+            plot_manager.clear()
+        self.plot_managers.clear()
+        for body_obj in load_objects(self.current_file_name):
+            self.add_body_obj(body_obj)
+
+    def save_simulation(self):
+        if self.current_file_name is None:
+            return self.save_simulation_as()
+        self.save_to_current_file()
+
+    def save_to_current_file(self):
+        dump_objects(self.body_objects, self.current_file_name)
+
+    def save_simulation_as(self):
+        self.current_file_name, _ = QFileDialog.getSaveFileName(
+            self, 'Сохранение', filter='*.yaml'
+        )
+        self.save_to_current_file()
+
     def add_body_obj(self, body_obj):
         self.plot_managers += [PlotManager(self.graphicsView, body_obj)]
         self.body_objects += [body_obj]
@@ -126,5 +159,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.delta_time = 1000
 
         self.do_simulation_iteration()
-
-
