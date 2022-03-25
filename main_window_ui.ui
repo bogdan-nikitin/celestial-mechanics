@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>427</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,50 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="PlotWidget" name="graphicsView"/>
+    </item>
+    <item row="1" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Шаг симуляции (в с): </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="deltaTimeBox">
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000000000000000017652801462756379714374878780719864776839443139119744823869255243069012222883470359078822072829219411228534934402712624705615450492327979456500795456339201761949451160807447294527656222743617592048849967890105831362861792425329827928397252374398383022243308510390698430058459037696.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.010000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="controlButton">
+        <property name="text">
+         <string>Остановить</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

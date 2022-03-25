@@ -56,13 +56,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_managers = []
         self.body_objects = []
         self.current_file_name = None
+        self.is_simulating = True
 
+        self.deltaTimeBox.editingFinished.connect(self.update_delta_time)
+        self.controlButton.clicked.connect(self.change_simulation_state)
         self.openAction.triggered.connect(self.open_simulation)
         self.saveAction.triggered.connect(self.save_simulation)
         self.saveAsAction.triggered.connect(self.save_simulation_as)
         body1 = CelestialBody(
             np.array([0, 0], dtype=float),
-            np.array([0, 0], dtype=float),
+            np.array([0, 1e3], dtype=float),
             1.9891e30
         )
         obj1 = CelestialBodyObject(
@@ -113,7 +116,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.elapsed_timer = QtCore.QElapsedTimer()
         self.elapsed_timer.start()
         self.elapsed = 0
-        self.delta_time = 0
+        self.delta_time = self.deltaTimeBox.value()
+
+    def update_delta_time(self):
+        self.delta_time = self.deltaTimeBox.value()
+
+    def change_simulation_state(self):
+        self.is_simulating = not self.is_simulating
+        if self.is_simulating:
+            self.controlButton.setText('Остановить')
+        else:
+            self.controlButton.setText('Запустить')
 
     def open_simulation(self):
         self.current_file_name, _ = QFileDialog.getOpenFileName(
@@ -151,11 +164,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         update_plots(self.plot_managers)
 
     def update_plot_data(self):
+        if not self.is_simulating:
+            return
         elapsed = self.elapsed_timer.elapsed()
-        self.delta_time = (elapsed - self.elapsed) / 1000
+        # self.delta_time = (elapsed - self.elapsed) / 1000
         # print(self.delta_time)
         self.elapsed = elapsed
 
-        self.delta_time = 1000
+        # self.delta_time = self.deltaTimeBox.value()
 
         self.do_simulation_iteration()
