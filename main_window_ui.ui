@@ -29,8 +29,32 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="openAction"/>
+    <addaction name="saveAsAction"/>
+    <addaction name="saveAction"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="openAction">
+   <property name="text">
+    <string>Загрузить симуляцию...</string>
+   </property>
+  </action>
+  <action name="saveAsAction">
+   <property name="text">
+    <string>Сохранить симуляцию как...</string>
+   </property>
+  </action>
+  <action name="saveAction">
+   <property name="text">
+    <string>Сохранить симуляцию</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
