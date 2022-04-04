@@ -20,7 +20,7 @@ class CelestialBodyObject:
     body: CelestialBody
     name: str
     color: (int, int, int)
-    size: int
+    size: float
     trajectory: CelestialBodyTrajectory = None
 
 

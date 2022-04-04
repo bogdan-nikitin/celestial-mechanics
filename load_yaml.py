@@ -10,8 +10,8 @@ def load_objects(file_name):
         data = yaml.safe_load(file)
     body_objects = []
     for body_obj_data in data['objects']:
-        body = CelestialBody(np.array(body_obj_data['pos']),
-                             np.array(body_obj_data['v']),
+        body = CelestialBody(np.array(body_obj_data['pos'], dtype=float),
+                             np.array(body_obj_data['v'], dtype=float),
                              body_obj_data['m'])
         body_obj = CelestialBodyObject(body,
                                        body_obj_data['name'],
