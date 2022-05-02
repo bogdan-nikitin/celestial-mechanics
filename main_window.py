@@ -1,8 +1,10 @@
+import random
+
 import numpy as np
-# import numpy.typing as npt
 import pyqtgraph as pg
 from PyQt5 import QtCore
-from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 
 from celestial_body_object import CelestialBodyObject, update_trajectories
@@ -11,6 +13,7 @@ from main_window_ui import Ui_MainWindow
 from simulation import CelestialBody, do_iteration, get_energy
 
 LEGEND_OFFSET = (15, 5)
+POSITIVE_DOUBLE_REG_EXP = QRegExp("[0-9]+,?[0-9]*")
 
 
 class PlotManager:
@@ -59,54 +62,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.legend = self.graphicsView.getPlotItem().addLegend(
             offset=LEGEND_OFFSET
         )
+        self.update_legend_visibility()
         self.plot_managers = []
         self.body_objects = []
         self.current_file_name = None
         self.is_simulating = True
-        self.deltaTimeEdit.setValidator(QDoubleValidator(self))
+        validator = QRegExpValidator(POSITIVE_DOUBLE_REG_EXP, self)
+        self.deltaTimeEdit.setValidator(validator)
         self.deltaTimeEdit.editingFinished.connect(self.update_delta_time)
+        # self.deltaTimeEdit.setText('0,01')
+        self.deltaTimeEdit.setText('0,0005')
+        self.softeningEdit.setValidator(validator)
+        self.softeningEdit.editingFinished.connect(self.update_softening)
+        # self.softeningEdit.setText('0,1')
+        self.softeningEdit.setText('0')
+        self.showLegendBox.stateChanged.connect(self.update_legend_visibility)
         self.controlButton.clicked.connect(self.change_simulation_state)
         self.openAction.triggered.connect(self.open_simulation)
         self.saveAction.triggered.connect(self.save_simulation)
         self.saveAsAction.triggered.connect(self.save_simulation_as)
-        body1 = CelestialBody(
-            np.array([0, 0], dtype=float),
-            np.array([5, 0], dtype=float),
-            1e14
-        )
-        obj1 = CelestialBodyObject(
-            body1,
-            'body1',
-            (255, 0, 0),
-            10
-        )
-        self.add_body_obj(obj1)
-
-        body2 = CelestialBody(
-            np.array([0, -100], dtype=float),
-            np.array([10, 0], dtype=float),
-            500
-        )
-        obj2 = CelestialBodyObject(
-            body2,
-            'body2',
-            (0, 255, 0),
-            5
-        )
-        self.add_body_obj(obj2)
-
-        body3 = CelestialBody(
-            np.array([0, 100], dtype=float),
-            np.array([12, 0], dtype=float),
-            500
-        )
-        obj3 = CelestialBodyObject(
-            body3,
-            'body3',
-            (0, 0, 255),
-            5
-        )
-        self.add_body_obj(obj3)
 
         # self.graphicsView.setBackground('w')
         # arrow = pg.ArrowItem(pos=[1000, 1000], angle=90, tailLen=100)
@@ -124,17 +98,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.last_elapsed = self.elapsed_timer.elapsed()
         self.elapsed = 0
         self.delta_time = self.parse_delta_time()
-        self.start_energy = get_energy(self.get_bodies())
+        self.softening = self.parse_softening()
         self.simulation_time = 0
+        self.iter_count = 0
+
+        # self._mass_center = self.graphicsView.plot(
+        #     [], [],
+        #     symbol='o',
+        #     symbolSize=0.1,
+        #     pxMode=False
+        # )
+
+        self.generate_random_simulation()
+        self.start_energy = get_energy(self.get_bodies())
+
+    def generate_random_simulation(self):
+        for i in range(3):
+            body = CelestialBody(
+                np.random.sample(2) * 10,
+                np.array([0, 0], dtype=float),
+                5e10
+            )
+            obj = CelestialBodyObject(
+                body,
+                str(i),
+                (random.randint(0, 255),
+                 random.randint(0, 255),
+                 random.randint(0, 255)),
+                0.02
+            )
+            self.add_body_obj(obj)
+
+    def update_legend_visibility(self):
+        self.legend.setVisible(self.showLegendBox.checkState())
 
     def parse_delta_time(self):
         return float(self.deltaTimeEdit.text().replace(',', '.'))
 
+    def parse_softening(self):
+        return float(self.softeningEdit.text().replace(',', '.'))
+
     def update_delta_time(self):
         self.delta_time = self.parse_delta_time()
-        if self.delta_time < 0:
-            self.delta_time = 0
-            self.deltaTimeEdit.setText('0')
+
+    def update_softening(self):
+        self.softening = self.parse_softening()
 
     def change_simulation_state(self):
         self.is_simulating = not self.is_simulating
@@ -155,6 +163,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for body_obj in load_objects(self.current_file_name):
             self.add_body_obj(body_obj)
         self.start_energy = get_energy(self.get_bodies())
+        self.simulation_time = 0
 
     def save_simulation(self):
         if self.current_file_name is None:
@@ -178,7 +187,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return [obj.body for obj in self.body_objects]
 
     def do_simulation_iteration(self):
-        do_iteration(self.get_bodies(), self.delta_time)
+        self.iter_count += 1
+        do_iteration(self.get_bodies(), self.delta_time, self.softening)
         update_trajectories(self.body_objects)
         update_plots(self.plot_managers)
 
@@ -198,3 +208,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.simulationSpeedEdit.setText(
             f'{self.delta_time / self.elapsed:.10f}'
         )
+        self.iterSpeedEdit.setText(f'{1 / self.elapsed:.10f}')
+        self.iterCountEdit.setText(str(self.iter_count))
+        self.simulationTimeEdit.setText(f'{self.simulation_time:.10f}')
+
+        # bodies = self.get_bodies()
+        # pos = bodies[0].pos.copy() * bodies[0].m
+        # mass = bodies[0].m
+        # for body in bodies[1:]:
+        #     pos += body.pos * body.m
+        #     mass += body.m
+        # pos /= mass
+        # self._mass_center.setData([pos[0]], [pos[1]])

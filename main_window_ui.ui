@@ -33,7 +33,7 @@
       <item>
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Параметры симуляции</string>
+         <string>Параметры</string>
         </property>
        </widget>
       </item>
@@ -45,7 +45,7 @@
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>Шаг симуляции (в с): </string>
+           <string>Шаг симуляции ∆t, с:</string>
           </property>
          </widget>
         </item>
@@ -58,7 +58,31 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>0,01</string>
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Величина смягчения ϵ, м:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="softeningEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="showLegendBox">
+          <property name="text">
+           <string>Показать названия тел</string>
           </property>
          </widget>
         </item>
@@ -109,9 +133,29 @@
        </layout>
       </item>
       <item>
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Время симуляции, с:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="simulationTimeEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Скорость симуляции</string>
+         <string>Скорость симуляции:</string>
         </property>
        </widget>
       </item>
@@ -128,6 +172,46 @@
         </property>
         <property name="readOnly">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Итераций в секунду:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="iterSpeedEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Количество итераций:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="iterCountEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>0</string>
         </property>
        </widget>
       </item>
