@@ -12,11 +12,11 @@ def load_objects(file_name):
     for body_obj_data in data['objects']:
         body = CelestialBody(np.array(body_obj_data['pos'], dtype=float),
                              np.array(body_obj_data['v'], dtype=float),
-                             body_obj_data['m'])
+                             float(body_obj_data['m']))
         body_obj = CelestialBodyObject(body,
-                                       body_obj_data['name'],
+                                       str(body_obj_data['name']),
                                        tuple(body_obj_data['color']),
-                                       body_obj_data['size'])
+                                       float(body_obj_data['size']))
         body_objects += [body_obj]
     return body_objects
 
