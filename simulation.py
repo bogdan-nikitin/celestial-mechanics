@@ -74,7 +74,8 @@ def get_energy(bodies):
     e = 0
     for body1 in bodies:
         e += body1.m * magnitude(body1.v) ** 2 / 2
-        for body2 in bodies:
-            if body1 is not body2:
-                e -= G * body1.m * body2.m / magnitude(body1.pos - body2.pos)
+    for i in range(len(bodies)):
+        for j in range(i + 1, len(bodies)):
+            e -= (G * bodies[i].m * bodies[j].m /
+                  magnitude(bodies[i].pos - bodies[j].pos))
     return e
